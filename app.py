@@ -1,3 +1,8 @@
+
+import sys
+if sys.version_info >= (3, 13):
+    st.error("Python 3.13 is not supported. Please use Python 3.10")
+    st.stop()
 import streamlit as st
 import gdown
 import torch
