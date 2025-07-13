@@ -12,8 +12,7 @@ import plotly.express as px
 import pandas as pd
 from collections import defaultdict
 import matplotlib.pyplot as plt
-import plotly.graph_objects as go
-import altair as alt
+import seaborn as sns
 
 # ================================
 # Download Models from Google Drive
@@ -88,27 +87,37 @@ def draw_detections(image, detections):
     
     return image
 
-def create_radial_chart(type_counts, color_counts):
-    """Create radial bar charts for vehicle types and colors"""
+def create_bar_chart(type_counts, color_counts):
+    """Create professional bar charts for vehicle types and colors"""
     # Vehicle type distribution
     type_df = pd.DataFrame({
         'Type': list(type_counts.keys()),
         'Count': list(type_counts.values())
     })
     
-    type_chart = alt.Chart(type_df).mark_bar(
-        cornerRadiusTopRight=10,
-        cornerRadiusBottomRight=10
-    ).encode(
-        theta=alt.Theta('Count:Q', stack=True),
-        radius=alt.Radius('Count:Q', scale=alt.Scale(type='sqrt', zero=True, rangeMin=20)),
-        color=alt.Color('Type:N', scale=alt.Scale(domain=list(type_counts.keys()), 
-                        legend=alt.Legend(title="Vehicle Type")),
-        tooltip=['Type', 'Count']
-    ).properties(
-        title='Vehicle Type Distribution',
-        width=300,
-        height=300
+    type_fig = px.bar(
+        type_df, 
+        x='Type', 
+        y='Count', 
+        color='Type',
+        color_discrete_map={
+            "Bus": "#636efa",
+            "Car": "#ef553b",
+            "Motorcycle": "#00cc96",
+            "Truck": "#ab63fa"
+        },
+        title='<b>Vehicle Type Distribution</b>',
+        text='Count',
+        height=400
+    )
+    
+    type_fig.update_layout(
+        xaxis_title='Vehicle Type',
+        yaxis_title='Count',
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='white'),
+        hovermode='x'
     )
     
     # Color distribution
@@ -118,82 +127,63 @@ def create_radial_chart(type_counts, color_counts):
         'ColorCode': [COLOR_MAP.get(c.lower(), "#999999") for c in color_counts.keys()]
     })
     
-    color_chart = alt.Chart(color_df).mark_bar(
-        cornerRadiusTopRight=10,
-        cornerRadiusBottomRight=10
-    ).encode(
-        theta=alt.Theta('Count:Q', stack=True),
-        radius=alt.Radius('Count:Q', scale=alt.Scale(type='sqrt', zero=True, rangeMin=20)),
-        color=alt.Color('Color:N', scale=alt.Scale(domain=list(color_counts.keys()), 
-                        legend=alt.Legend(title="Vehicle Color")),
-        tooltip=['Color', 'Count']
-    ).properties(
-        title='Vehicle Color Distribution',
-        width=300,
+    color_fig = px.bar(
+        color_df, 
+        x='Color', 
+        y='Count', 
+        color='Color',
+        color_discrete_map={c: COLOR_MAP.get(c.lower(), "#999999") for c in color_counts.keys()},
+        title='<b>Vehicle Color Distribution</b>',
+        text='Count',
+        height=400
+    )
+    
+    color_fig.update_layout(
+        xaxis_title='Vehicle Color',
+        yaxis_title='Count',
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='white'),
+        hovermode='x'
+    )
+    
+    return type_fig, color_fig
+
+def create_pie_chart(type_counts, color_counts):
+    """Create pie charts for distributions"""
+    # Vehicle type distribution
+    type_fig = px.pie(
+        names=list(type_counts.keys()),
+        values=list(type_counts.values()),
+        title='<b>Vehicle Type Distribution</b>',
+        hole=0.4,
         height=300
     )
     
-    return type_chart, color_chart
-
-def create_treemap(type_counts, color_counts, cross_df):
-    """Create interactive treemap visualization"""
-    # Prepare data for treemap
-    data = []
-    for t, t_count in type_counts.items():
-        data.append({
-            "Type": t,
-            "Color": "All",
-            "Count": t_count,
-            "Parent": "",
-            "Size": t_count
-        })
-        
-        for c, c_count in cross_df.loc[t].items():
-            if c_count > 0:
-                data.append({
-                    "Type": t,
-                    "Color": c,
-                    "Count": c_count,
-                    "Parent": t,
-                    "Size": c_count
-                })
-    
-    treemap_df = pd.DataFrame(data)
-    
-    fig = px.treemap(
-        treemap_df,
-        path=['Parent', 'Type', 'Color'],
-        values='Size',
-        color='Type',
-        color_discrete_map={
-            "Bus": "#636efa",
-            "Car": "#ef553b",
-            "Motorcycle": "#00cc96",
-            "Truck": "#ab63fa"
-        },
-        hover_data=['Count'],
-        title='<b>Vehicle Type-Color Composition</b>',
-        height=500
-    )
-    
-    fig.update_layout(
-        margin=dict(t=50, l=25, r=25, b=25),
-        paper_bgcolor='rgba(0,0,0,0)',
+    type_fig.update_layout(
         plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
         font=dict(color='white'),
-        hoverlabel=dict(
-            bgcolor="rgba(40, 42, 54, 0.9)",
-            font_size=16,
-            font_family="Arial"
-        )
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5)
     )
     
-    fig.update_traces(
-        textinfo="label+value",
-        hovertemplate='<b>%{label}</b><br>Count: %{value}'
+    # Color distribution
+    color_fig = px.pie(
+        names=list(color_counts.keys()),
+        values=list(color_counts.values()),
+        title='<b>Vehicle Color Distribution</b>',
+        hole=0.4,
+        height=300
     )
     
-    return fig
+    color_fig.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='white'),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5)
+    )
+    
+    return type_fig, color_fig
 
 # ================================
 # Enhanced Inference Function
@@ -365,35 +355,25 @@ def home_page():
             
             with col_viz1:
                 st.markdown("#### Vehicle Type Distribution")
-                type_df = pd.DataFrame({
-                    'Type': list(type_counts.keys()),
-                    'Count': list(type_counts.values())
-                })
-                fig1 = px.bar(type_df, x='Type', y='Count', color='Type',
-                             color_discrete_map={
-                                 "Bus": "#636efa",
-                                 "Car": "#ef553b",
-                                 "Motorcycle": "#00cc96",
-                                 "Truck": "#ab63fa"
-                             })
-                st.plotly_chart(fig1, use_container_width=True)
+                type_fig, _ = create_bar_chart(type_counts, {})
+                st.plotly_chart(type_fig, use_container_width=True)
             
             with col_viz2:
                 st.markdown("#### Vehicle Color Distribution")
-                color_df = pd.DataFrame({
-                    'Color': list(color_counts.keys()),
-                    'Count': list(color_counts.values()),
-                    'ColorCode': [COLOR_MAP.get(c.lower(), "#999999") for c in color_counts.keys()]
-                })
-                fig2 = px.bar(color_df, x='Color', y='Count', color='Color',
-                             color_discrete_map={c: COLOR_MAP.get(c.lower(), "#999999") for c in color_counts.keys()})
-                st.plotly_chart(fig2, use_container_width=True)
+                _, color_fig = create_bar_chart({}, color_counts)
+                st.plotly_chart(color_fig, use_container_width=True)
             
-            # Treemap visualization
-            if not cross_df.empty:
-                st.markdown("#### Vehicle Type-Color Composition")
-                treemap = create_treemap(type_counts, color_counts, cross_df)
-                st.plotly_chart(treemap, use_container_width=True)
+            # Pie charts
+            col_pie1, col_pie2 = st.columns(2)
+            with col_pie1:
+                st.markdown("#### Type Percentage")
+                type_pie, _ = create_pie_chart(type_counts, {})
+                st.plotly_chart(type_pie, use_container_width=True)
+            
+            with col_pie2:
+                st.markdown("#### Color Percentage")
+                _, color_pie = create_pie_chart({}, color_counts)
+                st.plotly_chart(color_pie, use_container_width=True)
             
             # Detection details table
             st.subheader("🔬 Detection Details")
@@ -441,17 +421,11 @@ def about_page():
     and identify their colors with high accuracy.
     
     ### System Architecture
-    """)
+    The system consists of three integrated deep learning models:
     
-    # Architecture diagram
-    st.image("https://i.imgur.com/9LrY4dT.png", caption="System Architecture Diagram", use_column_width=True)
-    
-    st.markdown("""
-    ### Technical Components
-    - **Detection Model**: YOLOv8 for real-time vehicle detection
-    - **Classification Models**: ResNet18 for vehicle type and color classification
-    - **Backend**: Python-based processing pipeline
-    - **Frontend**: Streamlit-based interactive dashboard
+    1. **YOLOv8 Object Detection** - Identifies vehicle locations in images
+    2. **ResNet18 Type Classifier** - Classifies vehicle types (Car, Bus, Truck, Motorcycle)
+    3. **ResNet18 Color Classifier** - Determines vehicle colors (red, blue, silver, etc.)
     
     ### Model Performance
     """)
