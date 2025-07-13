@@ -16,7 +16,6 @@ from ultralytics import YOLO
 import plotly.graph_objects as go
 import pandas as pd
 from collections import defaultdict
-import plotly.express as px
 
 # ================================
 # Download Models from Google Drive
@@ -100,7 +99,7 @@ def create_3d_bar_chart(type_counts, color_counts):
         z=list(type_counts.values()),
         colorscale='Viridis',
         opacity=0.8
-    )])
+    ])
     
     fig1.update_layout(
         title='<b>3D Vehicle Type Distribution</b>',
@@ -120,11 +119,11 @@ def create_3d_bar_chart(type_counts, color_counts):
     # Color distribution
     fig2 = go.Figure(data=[go.Bar3d(
         x=list(color_counts.keys()),
-        y=[0] * len(color_counts)),
+        y=[0] * len(color_counts),
         z=list(color_counts.values()),
-        color=[COLOR_MAP.get(c.lower(), "#999999") for c in color_counts.keys()],
+        colorscale=[[0, COLOR_MAP.get(c.lower(), "#999999")] for c in color_counts.keys()],
         opacity=0.8
-    )])
+    ])
     
     fig2.update_layout(
         title='<b>3D Color Distribution</b>',
@@ -155,7 +154,7 @@ def create_3d_surface_chart(cross_df):
         colorscale='Viridis',
         opacity=0.9,
         contours_z=dict(show=True, usecolormap=True, highlightcolor="limegreen", project_z=True)
-    )])
+    ])
     
     fig.update_layout(
         title='<b>Vehicle Type vs Color Distribution</b>',
