@@ -17,9 +17,6 @@ import plotly.graph_objects as go
 import pandas as pd
 from collections import defaultdict
 import plotly.express as px
-import matplotlib.pyplot as plt
-from matplotlib import cm
-from matplotlib.colors import LinearSegmentedColormap
 
 # ================================
 # Download Models from Google Drive
@@ -123,7 +120,7 @@ def create_3d_bar_chart(type_counts, color_counts):
     # Color distribution
     fig2 = go.Figure(data=[go.Bar3d(
         x=list(color_counts.keys()),
-        y=[0] * len(color_counts),
+        y=[0] * len(color_counts)),
         z=list(color_counts.values()),
         color=[COLOR_MAP.get(c.lower(), "#999999") for c in color_counts.keys()],
         opacity=0.8
